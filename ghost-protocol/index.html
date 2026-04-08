@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hackathon Chat App🌙</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <!-- Dark theme styles -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #bb86fc;
+        }
+        
+        .input-group {
+            margin-bottom: 10px;
+        }
+        
+        input,
+        button {
+            padding: 10px;
+            width: 100%;
+            max-width: 400px;
+            margin: 5px auto;
+            display: block;
+            border-radius: 5px;
+            border: 1px solid #333;
+            background-color: #1f1f1f;
+            color: #e0e0e0;
+        }
+        
+        input::placeholder {
+            color: #aaa;
+        }
+        
+        button {
+            background-color: #6200ee;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        
+        button:hover {
+            background-color: #3700b3;
+        }
+        
+        #messagesContainer {
+            margin-top: 20px;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        
+        .message {
+            padding: 8px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .message:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>
+        Hackathon Chat App 🌙</h1>
+
+    <!-- User Input -->
+    <div class="input-group">
+        <input type="text" id="usernameInput" placeholder="Your name">
+    </div>
+    <div class="input-group">
+        <input type="text" id="messageInput" placeholder="Type your message">
+    </div>
+    <div class="input-group">
+        <button id="postBtn">Post Message</button>
+    </div>
+
+    <!-- Messages Display -->
+    <div id="messagesContainer">
+        <p style="text-align:center;color:#888;">No messages yet. Be the first!</p>
+    </div>
+
+    <!-- Script -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAigEM_bdif8wFHNmRolszG0Tm33yspD0w",
+            authDomain: "ghostchat-app-01.firebaseapp.com",
+            projectId: "ghostchat-app-01",
+            storageBucket: "ghostchat-app-01.firebasestorage.app",
+            messagingSenderId: "701393263235",
+            appId: "1:701393263235:web:57cffa7e740d85d342d9b6",
+            measurementId: "G-WJ0DJR065Y"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // DOM elements
+        const postButton = document.getElementById("postBtn");
+        const messageInput = document.getElementById("messageInput");
+        const usernameInput = document.getElementById("usernameInput");
+        const messagesContainer = document.getElementById("messagesContainer");
+
+        // Add message to Firestore
+        postButton.addEventListener("click", async() => {
+            const username = usernameInput.value.trim();
+            const message = messageInput.value.trim();
+
+            if (!username || !message) {
+                alert("Please enter both username and message!");
+                return;
+            }
+
+            try {
+                await db.collection("messages").add({
+                    username: username,
+                    message: message,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Clear inputs
+                usernameInput.value = "";
+                messageInput.value = "";
+
+                // Refresh messages
+                loadMessages();
+            } catch (error) {
+                console.error("Error posting message:", error);
+                alert("Failed to post message. Check your Firebase config!");
+            }
+        });
+
+        // Load messages from Firestore
+        async function loadMessages() {
+            messagesContainer.innerHTML = "";
+
+            try {
+                const querySnapshot = await db.collection("messages")
+                    .orderBy("timestamp", "desc")
+                    .get();
+
+                if (querySnapshot.empty) {
+                    messagesContainer.innerHTML = "<p style='text-align:center;color:#888;'>No messages yet. Be the first!</p>";
+                }
+
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const messageElement = document.createElement("div");
+                    messageElement.classList.add("message");
+                    messageElement.innerHTML = `<strong>${data.username}</strong>: ${data.message}`;
+                    messagesContainer.appendChild(messageElement);
+                });
+            } catch (error) {
+                console.error("Error loading messages:", error);
+                messagesContainer.innerHTML = "<p style='text-align:center;color:#888;'>Failed to load messages.</p>";
+            }
+        }
+
+        // Auto-load messages on page load
+        window.addEventListener("DOMContentLoaded", loadMessages);
+    </script>
+
+</body>
+
+</html>
