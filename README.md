@@ -1,4 +1,4 @@
-# Hackathon Chat App 🌙
+#Ghost-Protocol 👻
 
 A lightweight, low-pressure chat platform built during a hackathon.  
 - **Tech Stack:** HTML, CSS, JavaScript, Firebase  
